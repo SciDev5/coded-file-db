@@ -11,7 +11,7 @@ object Help {
     fun print() {
         printHelpFile("main")
     }
-    fun printOpenedDB() {
-        printHelpFile("opened")
+    fun printDBOpen() {
+        printHelpFile("db-open")
     }
 }

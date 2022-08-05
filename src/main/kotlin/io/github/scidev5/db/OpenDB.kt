@@ -1,7 +1,7 @@
 package io.github.scidev5.db
 
 import io.github.scidev5.commandLine.*
-import io.github.scidev5.util.DefaultConfirmation
+import io.github.scidev5.commandLine.DefaultConfirmation
 import io.github.scidev5.workingDir
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
@@ -217,7 +217,7 @@ class OpenDB {
                 )
             }
             when(input?.command) {
-                DBCommand.HELP -> Help.printOpenedDB()
+                DBCommand.HELP -> Help.printDBOpen()
                 DBCommand.CLOSE -> close() ?: break@loop
 
                 DBCommand.CREATE -> execForeachParam(input.params,this::create)

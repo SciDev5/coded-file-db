@@ -1,0 +1,12 @@
+>> HELP & COMMAND LIST:
+
+TODO: command details
+
+HELP      --- "help"            --- alt. ["h","?"]
+CLOSE     --- "close"           --- alt. ["x"]
+LIST_OPEN --- "list opened"     --- alt. ["l","list"]
+SAVE      --- "save"            --- alt. ["s","push"]
+VIEW      --- "view"            --- alt. ["v","pull"]
+CREATE    --- "create"          --- alt. ["c"]
+DELETE    --- "delete"          --- alt. ["del"]
+DELETE_DB --- "delete database" --- alt. [<none>]

@@ -1,11 +1,9 @@
 package io.github.scidev5.commandLine
 
-import io.github.scidev5.util.DefaultConfirmation
-import io.github.scidev5.util.DefaultConfirmation.*
+import io.github.scidev5.commandLine.DefaultConfirmation.*
 import kotlin.random.Random
 
-
-fun requestConfirmation(request: String, default:DefaultConfirmation):Boolean {
+fun requestConfirmation(request: String, default: DefaultConfirmation):Boolean {
     if (ProgramArguments.autoConfirmFlag) return true
 
     print("$request [${ if (default == YES) "Y/n" else "y/N" }]: ")
@@ -36,3 +34,7 @@ fun requestStrongConfirmation(request: String):Boolean {
 }
 fun strongConfirm(request: String):Unit?
         = if (requestStrongConfirmation(request)) Unit else null
+
+enum class DefaultConfirmation {
+    YES, NO
+}

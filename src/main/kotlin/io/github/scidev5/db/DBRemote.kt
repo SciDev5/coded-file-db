@@ -1,7 +1,7 @@
 package io.github.scidev5.db
 
 import io.github.scidev5.commandLine.requestConfirmation
-import io.github.scidev5.util.DefaultConfirmation
+import io.github.scidev5.commandLine.DefaultConfirmation
 import java.nio.file.Path
 import kotlin.io.path.*
 

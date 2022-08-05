@@ -1,5 +1,20 @@
-  _                    _            _
- /   _   _|  _   _|   |_ o |  _    | \  _. _|_  _. |_   _.  _  _
- \_ (_) (_| (/_ (_|   |  | | (/_   |_/ (_|  |_ (_| |_) (_| _> (/_
+╔═╗┌─┐┌┬┐┌─┐┌┬┐  ╔═╗┬ ┬  ┌─┐  ╔╦╗╔╗
+║  │ │ ││├┤  ││  ╠╣ │ │  ├┤    ║║╠╩╗
+╚═╝└─┘─┴┘└─┘─┴┘  ╚  ┴ ┴─┘└─┘  ═╩╝╚═╝ v${project.version}
+           - HELP PAGE -
 
-[TODO: Program help]
+Commands:
+
+--init
+    Initialize a folder with configuration
+    and helper files to use coded-file-db.
+
+--version
+    Get version and build information
+
+--open
+    Access the contents of a database. Must
+    be run in a folder initialized by `--init`.
+
+--help
+    Show this screen.
