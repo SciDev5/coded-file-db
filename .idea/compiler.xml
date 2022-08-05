@@ -6,11 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="consoleApp" />
+        <module name="coded-file-db" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="consoleApp" target="1.8" />
+      <module name="coded-file-db" target="1.8" />
+      <module name="coded-file-db (1)" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
