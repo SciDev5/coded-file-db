@@ -4,6 +4,5 @@
 version    : ${project.version}
 artifactId : ${project.artifactId}
 
-jvm target version : ${kotlin.compiler.jvmTarget}
-jvm version        : ${java.version}
-build timestamp    : ${maven.build.timestamp}
+jvm target version  : ${kotlin.compiler.jvmTarget}
+jdk version         : ${java.vm.version}

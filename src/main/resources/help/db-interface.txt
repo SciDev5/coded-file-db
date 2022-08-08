@@ -1,0 +1,54 @@
+_________________________________________________
+------------ DATABASE INTERFACE HELP ------------
+
+----- >>> ------ COMMAND FORMAT ------ <<< ------
+
+Commands formatted "<name>" run and request
+additional data as needed, commands formatted
+"<name>:<data1>/<data2>/<...etc>" take run the
+command with the data after the colon. Excess
+whitespace around ':' and '/' is ignored.
+
+Example basic command:
+    - "view"
+    - "close"
+
+Example command with data in it:
+    - "view:steve"
+    - "create:alice/bob/clair/dennis"
+
+
+----- >>> ------- COMMAND LIST ------- <<< ------
+
+"help" / "h" / "?"
+    Show this help screen.
+
+"close" / "x"
+    Close this window and optionally the opened
+    folder/groups as well.
+
+"list opened" / "l" / "list"
+    Show a list of all the names of the folder/groups
+    that are open.
+
+"save" / "s" / "push"
+    Save/push a folder/group into the database,
+    coding its name in the process.
+    ex. "save", "save:alice/bob/claire/dennis"
+
+"view" / "v" / "pull"
+    View/pull a folder/group from the database,
+    decoding its name in the process.
+    ex. "view", "view:alice/bob/claire/dennis"
+
+"create" / "c"
+    Create a new folder/group to put files into.
+    ex. "create", "create:alice/bob/claire/dennis"
+
+"delete" / "del"
+    Delete a folder/group.
+    ex. "delete", "delete:alice/bob/claire/dennis"
+
+"delete database"
+    Delete the entire database.
+_________________________________________________

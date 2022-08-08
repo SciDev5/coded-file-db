@@ -5,16 +5,26 @@
 
 Commands:
 
---init
+--init / -i
     Initialize a folder with configuration
     and helper files to use coded-file-db.
 
---version
+--version / -v
     Get version and build information
 
---open
+--open / -o
     Access the contents of a database. Must
     be run in a folder initialized by `--init`.
 
---help
+--run -commands=<command1>&<command2>&<...etc> / -r -C=<command1>&<...etc>
+    Access the contents of a database and run
+    a series of commands in it. Must be run in
+    a folder initialized by `--init`.
+
+--help / -h / ?
     Show this screen.
+
+Flags:
+
+-y
+    Automatically say yes to all confirmation messages.

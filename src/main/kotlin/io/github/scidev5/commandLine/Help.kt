@@ -2,16 +2,16 @@ package io.github.scidev5.commandLine
 
 object Help {
     private fun printHelpFile(which:String) {
-        val helpReader = javaClass.getResourceAsStream("/help/$which.txt")?.bufferedReader()
-            ?: throw Exception("main.txt resource was missing")
+        val helpReader = javaClass.getResourceAsStream("/help/$which")?.bufferedReader()
+            ?: throw Exception("cli.txt resource was missing")
         val helpText = helpReader.readText()
         helpReader.close()
         println(helpText)
     }
     fun print() {
-        printHelpFile("main")
+        printHelpFile("cli.txt")
     }
     fun printDBOpen() {
-        printHelpFile("db-open")
+        printHelpFile("db-interface.txt")
     }
 }
