@@ -32,8 +32,7 @@ object ProgramArguments {
             }
             return true
         }
-        println("error! $error")
-        Help.print()
+        println("Error reading arguments: $error\nSee `--help` for usage instructions.")
         return false
     }
 }

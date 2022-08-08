@@ -4,7 +4,7 @@ object SplashReader {
     fun print() {
         println((
                 javaClass.getResourceAsStream("/splash.txt")
-                    ?: throw java.lang.Exception("could not find splash page")
+                    ?: throw java.lang.Exception("could not read splash page file")
                 ).bufferedReader().readText()
         )
     }

@@ -5,15 +5,16 @@ _________________________________________________
 
 Commands formatted "<name>" run and request
 additional data as needed, commands formatted
-"<name>:<data1>,<data2>,<...etc>" take run the
-command with the data after the colon. Excess
-whitespace around ':' and ',' is ignored.
+"<name>:<data1>,<data2>,<...etc>" run the
+command with the data after the colon, separated
+by commas. Excess whitespace around ':' and ','
+is ignored.
 
-Example basic command:
+Example basic commands:
     - "view"
     - "close"
 
-Example command with data in it:
+Example commands with data in it:
     - "view:steve"
     - "create:alice,bob,clair,dennis"
 
@@ -27,7 +28,7 @@ Example command with data in it:
     Close this window and optionally the opened
     folder/groups as well.
 
-"list opened" / "l" / "list"
+"list viewing" / "l" / "list"
     Show a list of all the names of the folder/groups
     that are open.
 

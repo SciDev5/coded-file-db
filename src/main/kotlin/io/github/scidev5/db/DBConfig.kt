@@ -2,6 +2,7 @@ package io.github.scidev5.db
 
 import io.github.scidev5.workingDir
 import kotlinx.serialization.json.*
+import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.*
 
@@ -20,8 +21,8 @@ private class DBParseException(dbConfig: DBConfig,msg:String,key:String,expected
 class DBConfig {
     val path = workingDir/"codedDbConfig.json"
 
-    var remoteDir = Paths.get(".")
-    var localDir = Paths.get(".")
+    var remoteDir: Path = Paths.get(".")
+    var localDir: Path = Paths.get(".")
     var initialized = path.exists(); private set
 
     private object KEY {

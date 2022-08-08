@@ -1,7 +1,8 @@
-╔═╗┌─┐┌┬┐┌─┐┌┬┐  ╔═╗┬ ┬  ┌─┐  ╔╦╗╔╗
-║  │ │ ││├┤  ││  ╠╣ │ │  ├┤    ║║╠╩╗
-╚═╝└─┘─┴┘└─┘─┴┘  ╚  ┴ ┴─┘└─┘  ═╩╝╚═╝ v${project.version}
-           - HELP PAGE -
+_________________________________________________
+    ╔═╗┌─┐┌┬┐┌─┐┌┬┐  ╔═╗┬ ┬  ┌─┐  ╔╦╗╔╗
+    ║  │ │ ││├┤  ││  ╠╣ │ │  ├┤    ║║╠╩╗
+    ╚═╝└─┘─┴┘└─┘─┴┘  ╚  ┴ ┴─┘└─┘  ═╩╝╚═╝ v${project.version}
+------------------- CLI HELP --------------------
 
 Commands:
 
@@ -10,7 +11,7 @@ Commands:
     and helper files to use coded-file-db.
 
 --version / -v
-    Get version and build information
+    Get version and build information.
 
 --open / -o
     Access the contents of a database. Must
@@ -18,10 +19,10 @@ Commands:
 
 --run -commands=<cmd1>;<cmd2>;<...etc> /
 -r -C=<cmd1>;<...etc>
-    Access the contents of a database and run
-    a series of commands in it. Must be run in
-    a folder initialized by `--init`. Automatically
-    closes when execution completes
+    Access the contents of a database and run a
+    series of commands in it. Must be run in a
+    folder initialized by `--init`. Automatically
+    closes when execution completes.
 
 --help / -h / ?
     Show this screen.
@@ -29,4 +30,6 @@ Commands:
 Flags:
 
 -y
-    Automatically say yes to all confirmation messages.
+    Automatically say yes to all confirmation
+    messages.
+_________________________________________________

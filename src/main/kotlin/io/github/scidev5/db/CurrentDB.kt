@@ -11,16 +11,16 @@ import kotlin.io.path.*
 
 class CurrentDB {
     private enum class DBCommand(val label:String) {
-        HELP      ("help"),
-        CLOSE     ("close"),
-        LIST_OPEN ("list opened"),
-        SAVE      ("save"),
-        VIEW      ("view"),
-        CREATE    ("create"),
-        DELETE    ("delete"),
-        DELETE_DB ("delete database"),
-        PAUSE     ("pause"),
-        PRINT     ("print");
+        HELP        ("help"),
+        CLOSE       ("close"),
+        LIST_PULLED ("list viewing"),
+        SAVE        ("save"),
+        VIEW        ("view"),
+        CREATE      ("create"),
+        DELETE      ("delete"),
+        DELETE_DB   ("delete database"),
+        PAUSE       ("pause"),
+        PRINT       ("print");
 
         companion object {
             fun parse(string: String): DBCommand? {
@@ -32,13 +32,13 @@ class CurrentDB {
                         "v", "pull" -> VIEW
                         "c"         -> CREATE
                         "del"       -> DELETE
-                        "l", "list" -> LIST_OPEN
+                        "l", "list" -> LIST_PULLED
                         "..."       -> PAUSE
                         "!"         -> PRINT
                         else -> null
                     }
             }
-            val all = arrayOf(HELP,CLOSE,SAVE,VIEW,CREATE,DELETE,DELETE_DB,LIST_OPEN,PRINT,PAUSE)
+            val all = arrayOf(HELP,CLOSE,SAVE,VIEW,CREATE,DELETE,DELETE_DB,LIST_PULLED,PRINT,PAUSE)
         }
     }
     private class DBCommandParamPair(val command: DBCommand?, val params: List<String>)
@@ -60,7 +60,7 @@ class CurrentDB {
                     false
                 }
             }
-                ?: return println("cancelled")
+                ?: return println("nothing changed")
             )
 
             config.save()
@@ -73,7 +73,11 @@ class CurrentDB {
                 )
             } catch (_: UnsupportedOperationException) {}
 
-            println("initialized coded-file-db at ${workingDir.absolutePathString()}")
+            println("""
+initialized coded-file-db:
+ [local ] ${workingDir.absolutePathString()}
+ [remote] ${config.remoteDir.absolutePathString()}
+""".trim())
         }
 
         fun run(commandListString: String) {
@@ -100,7 +104,7 @@ class CurrentDB {
 
             loopWithDBOpen@ while (true) {
                 val input = AskForInput.obj(
-                    "enter command",
+                    "[:: enter command ::]",
                     Companion::parseCommand
                 )
                 db.runCommand(input, DBCommandSource.USER)
@@ -125,7 +129,7 @@ class CurrentDB {
             DBCommand.SAVE -> execForeachParam(input.params, this::push)
             DBCommand.VIEW -> execForeachParam(input.params, this::pull)
 
-            DBCommand.LIST_OPEN -> listOpened()
+            DBCommand.LIST_PULLED -> listOpened()
 
             DBCommand.DELETE_DB -> deleteDatabase()
 
@@ -160,7 +164,7 @@ class CurrentDB {
     private val db: DBRemote = DBRemote(config.remoteDir)
     private val pulledFolders = HashMap<String, DBFolder>()
     private fun askForFolderName() = AskForInput.lineOrNevermind(
-        "file group name?: ",
+        "file group name?",
         "group name"
     ) { it.isNotBlank() }?.trim()
     private fun folderPath(folderName: String) = config.localDir / folderName
@@ -251,7 +255,7 @@ class CurrentDB {
 
         if (!db.hasFolder(folderName))
             confirm("no such group '$folderName' in database, create it?", DefaultConfirmation.NO)
-                ?: return println("cancelled")
+                ?: return println("nothing changed")
 
         if (detectPulledFolder(folderName)) {
             confirm("revert group '$folderName' to last saved value?", DefaultConfirmation.NO)
