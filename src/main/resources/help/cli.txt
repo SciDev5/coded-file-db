@@ -16,10 +16,12 @@ Commands:
     Access the contents of a database. Must
     be run in a folder initialized by `--init`.
 
---run -commands=<command1>&<command2>&<...etc> / -r -C=<command1>&<...etc>
+--run -commands=<cmd1>;<cmd2>;<...etc> /
+-r -C=<cmd1>;<...etc>
     Access the contents of a database and run
     a series of commands in it. Must be run in
-    a folder initialized by `--init`.
+    a folder initialized by `--init`. Automatically
+    closes when execution completes
 
 --help / -h / ?
     Show this screen.

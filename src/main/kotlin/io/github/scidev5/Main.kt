@@ -3,7 +3,7 @@ package io.github.scidev5
 import io.github.scidev5.commandLine.Help
 import io.github.scidev5.commandLine.ProgramArguments
 import io.github.scidev5.commandLine.ProgramMode.*
-import io.github.scidev5.db.OpenDB
+import io.github.scidev5.db.CurrentDB
 import io.github.scidev5.util.SplashReader
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -16,8 +16,9 @@ fun main(args: Array<String>) {
 
     when(ProgramArguments.mode) {
         HELP -> Help.print()
-        OPEN_DB -> OpenDB()
-        INIT_DB -> OpenDB.initDB()
+        OPEN_DB -> CurrentDB.open()
+        RUN_DB -> CurrentDB.run(ProgramArguments.runMode_commands)
+        INIT_DB -> CurrentDB.init()
         VERSION -> SplashReader.print()
 
         else -> TODO("implement other program modes")

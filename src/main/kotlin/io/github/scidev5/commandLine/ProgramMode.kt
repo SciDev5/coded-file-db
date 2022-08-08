@@ -2,6 +2,7 @@ package io.github.scidev5.commandLine
 
 enum class ProgramMode {
     OPEN_DB,
+    RUN_DB,
     INIT_DB,
     VERSION,
     HELP;
@@ -11,6 +12,7 @@ enum class ProgramMode {
             "--init", "-i" -> INIT_DB
             "--help", "?", "-h" -> HELP
             "--version", "-v" -> VERSION
+            "--run", "-r" -> RUN_DB
             else -> null
         }
     }

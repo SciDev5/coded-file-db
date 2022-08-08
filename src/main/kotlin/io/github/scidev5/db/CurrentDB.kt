@@ -9,7 +9,7 @@ import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.*
 
 
-class OpenDB {
+class CurrentDB {
     private enum class DBCommand(val label:String) {
         HELP      ("help"),
         CLOSE     ("close"),
@@ -18,7 +18,9 @@ class OpenDB {
         VIEW      ("view"),
         CREATE    ("create"),
         DELETE    ("delete"),
-        DELETE_DB ("delete database");
+        DELETE_DB ("delete database"),
+        PAUSE     ("pause"),
+        PRINT     ("print");
 
         companion object {
             fun parse(string: String): DBCommand? {
@@ -31,18 +33,25 @@ class OpenDB {
                         "c"         -> CREATE
                         "del"       -> DELETE
                         "l", "list" -> LIST_OPEN
+                        "..."       -> PAUSE
+                        "!"         -> PRINT
                         else -> null
                     }
             }
-            val all = arrayOf(HELP,CLOSE,SAVE,VIEW,CREATE,DELETE,DELETE_DB,LIST_OPEN)
+            val all = arrayOf(HELP,CLOSE,SAVE,VIEW,CREATE,DELETE,DELETE_DB,LIST_OPEN,PRINT,PAUSE)
         }
     }
     private class DBCommandParamPair(val command: DBCommand?, val params: List<String>)
+    private enum class DBCommandSource {
+        USER, CLI
+    }
 
     companion object {
-        fun initDB() {
-            val path = AskForInput.lineOrNevermind(
-                "enter the database storage folder path (right click to paste)",
+        fun init() {
+            val config = DBConfig()
+
+            config.remoteDir = Paths.get(AskForInput.lineOrNevermind(
+                "enter the database storage folder path (right click to paste)\n",
                 "valid path"
             ) {
                 try {
@@ -52,42 +61,108 @@ class OpenDB {
                 }
             }
                 ?: return println("cancelled")
+            )
 
-            val config = DBConfig()
-            config.remoteDir = Paths.get(path)
             config.save()
 
-            val jv = Companion::class.java
-            val jarPath = Paths.get(jv.protectionDomain.codeSource.location.toURI()).absolutePathString().replace("\\","\\\\")
-            val openShContent = (
-                    jv.getResourceAsStream("/autos/open.sh")
-                        ?: throw Exception("'/autos/open.sh' template resource missing")
-                    ).bufferedReader().readText()
-                .replace(Regex("\\{\\{JAR_PATH}}"),jarPath)
             val openShPath = workingDir / "open.sh"
-            openShPath.writeText(openShContent)
+            openShPath.writeText(DBInitData.openSHContent)
             try {
                 openShPath.setPosixFilePermissions(
                     setOf(PosixFilePermission.OWNER_EXECUTE) + openShPath.getPosixFilePermissions()
                 )
             } catch (_: UnsupportedOperationException) {}
 
-            if (!ProgramArguments.autoConfirmFlag) {
-                println("done, press any key to continue...")
-                System.`in`.read()
+            println("initialized coded-file-db at ${workingDir.absolutePathString()}")
+        }
+
+        fun run(commandListString: String) {
+            if (!ProgramArguments.autoConfirmFlag)
+                println("'-y' was not set, manual confirmation will be required at each command.")
+
+            val commands = commandListString.split(Regex.fromLiteral(";")).map { it.trim() }
+
+            run withDBOpen@{
+                val db = CurrentDB()
+                db.requireInitialized() ?: return@withDBOpen
+                for (lineIn in commands) {
+                    val input = parseCommand(lineIn)
+                    db.runCommand(input, DBCommandSource.CLI)
+                        ?: return@withDBOpen
+                }
+                db.close(allowAbort = false)
+            }
+        }
+
+        fun open() {
+            val db = CurrentDB()
+            db.requireInitialized() ?: return
+
+            loopWithDBOpen@ while (true) {
+                val input = AskForInput.obj(
+                    "enter command",
+                    Companion::parseCommand
+                )
+                db.runCommand(input, DBCommandSource.USER)
+                    ?: break@loopWithDBOpen
+            }
+        }
+
+        private fun parseCommand(lineIn:String):DBCommandParamPair {
+            val (rawCommand, rawParam) = lineIn.split(Regex(":"), 2) + listOf("")
+            return DBCommandParamPair(
+                DBCommand.parse(rawCommand.trim()),
+                rawParam.split(Regex(",")).map { it.trim() }
+            )
+        }
+    }
+    private fun runCommand(input:DBCommandParamPair?, source: DBCommandSource):Unit? {
+        return when (input?.command) {
+            DBCommand.HELP -> Help.printDBOpen()
+
+            DBCommand.CREATE -> execForeachParam(input.params, this::create)
+            DBCommand.DELETE -> execForeachParam(input.params, this::delete)
+            DBCommand.SAVE -> execForeachParam(input.params, this::push)
+            DBCommand.VIEW -> execForeachParam(input.params, this::pull)
+
+            DBCommand.LIST_OPEN -> listOpened()
+
+            DBCommand.DELETE_DB -> deleteDatabase()
+
+            null -> println("invalid command, try one of [${DBCommand.all.joinToString(", ") { "'${it.label}'" }}]")
+
+            else -> when (source) {
+                DBCommandSource.CLI -> when (input.command) {
+                    DBCommand.PAUSE -> {
+                        print("... paused, press enter to continue ...")
+                        readln()
+                        Unit
+                    }
+                    DBCommand.PRINT -> println(input.params.joinToString("\n"))
+                    else -> println("disallowed command for CLI input: ${input.command.name}")
+                }
+                DBCommandSource.USER -> when (input.command) {
+                    DBCommand.CLOSE -> close()
+                    else -> println("disallowed command for user input: ${input.command.name}")
+                }
             }
         }
     }
 
     private val config = DBConfig()
+    fun requireInitialized():Unit? {
+        return if (!config.initialized) {
+            println(">> no config present in working directory.\n>> please navigate to a directory linked to a database.")
+            null
+        } else Unit
+    }
+
     private val db: DBRemote = DBRemote(config.remoteDir)
-
     private val pulledFolders = HashMap<String, DBFolder>()
-
     private fun askForFolderName() = AskForInput.lineOrNevermind(
         "file group name?: ",
-        "3+ characters"
-    ) { it.length >= 3 }
+        "group name"
+    ) { it.isNotBlank() }?.trim()
     private fun folderPath(folderName: String) = config.localDir / folderName
     private fun detectPulledFolder(folderName: String):Boolean {
         if (folderName in pulledFolders.keys)
@@ -104,15 +179,16 @@ class OpenDB {
         else                   params.forEach(handle)
     }
 
-    private fun close():Unit? {
+
+    private fun close(allowAbort:Boolean = true):Unit? {
         if (pulledFolders.isNotEmpty()) {
-            confirm("unsaved changes, continue? (optional save-all before exit)", DefaultConfirmation.NO)
-                ?: return Unit
+            if (allowAbort)
+                confirm("unsaved changes, continue? (optional save-all before exit)", DefaultConfirmation.NO)
+                    ?: return Unit
             if (requestConfirmation("save/push all unsaved changes?", DefaultConfirmation.YES)) {
-                println("save/pushing...")
-                for ((name,folder) in pulledFolders.entries) {
-                    println(" - '$name'")
-                    doPush(name,folder)
+                println("save/pushing on close...")
+                for ((name, folder) in pulledFolders.entries) {
+                    doPush(name, folder)
                 }
                 println("save/pushed ${pulledFolders.size} group(s)")
             }
@@ -145,6 +221,7 @@ class OpenDB {
     }
 
     private fun doPush(folderName: String, pulledFolder: DBFolder) {
+        println("- push '$folderName'")
         db[folderName][AllFolderContents] = pulledFolder[AllFolderContents]
         pulledFolder.delete()
     }
@@ -153,6 +230,7 @@ class OpenDB {
         pulledFolders.remove(folderName)
     }
     private fun doPull(folderName: String) {
+        println("- pull '$folderName'")
         val pulledFolder = pulledFolders[folderName] ?: DBFolder(folderPath(folderName))
         pulledFolders[folderName] = pulledFolder
         pulledFolder[AllFolderContents] = db[folderName][AllFolderContents]
@@ -185,6 +263,7 @@ class OpenDB {
         doPull(folderName)
     }
     private fun listOpened() {
+        println("currently viewing:")
         if (pulledFolders.isEmpty())
             println("<none>")
         else
@@ -200,37 +279,5 @@ class OpenDB {
             null // <- tell the loop to break by returning null
         } else
             println("canceled delete")
-    }
-
-
-    init {
-        if (!config.initialized) {
-            println(">> no config present in working directory.\n>> please navigate to a directory linked to a database.")
-        } else loop@while (true) {
-            val input = AskForInput.obj(
-                "enter command"
-            ) { lineIn ->
-                val (rawCommand, rawParam) = lineIn.split(Regex(":"), 2) + listOf("")
-                return@obj DBCommandParamPair(
-                    DBCommand.parse(rawCommand.trim()),
-                    rawParam.split(Regex("/")).map { it.trim() }
-                )
-            }
-            when(input?.command) {
-                DBCommand.HELP -> Help.printDBOpen()
-                DBCommand.CLOSE -> close() ?: break@loop
-
-                DBCommand.CREATE -> execForeachParam(input.params,this::create)
-                DBCommand.DELETE -> execForeachParam(input.params,this::delete)
-                DBCommand.SAVE -> execForeachParam(input.params,this::push)
-                DBCommand.VIEW -> execForeachParam(input.params,this::pull)
-
-                DBCommand.LIST_OPEN -> listOpened()
-
-                DBCommand.DELETE_DB -> deleteDatabase() ?: break@loop
-
-                else -> println("invalid command, try one of [${DBCommand.all.joinToString(", ") { "'${it.label}'" }}]")
-            }
-        }
     }
 }

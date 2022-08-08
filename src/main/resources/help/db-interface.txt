@@ -5,9 +5,9 @@ _________________________________________________
 
 Commands formatted "<name>" run and request
 additional data as needed, commands formatted
-"<name>:<data1>/<data2>/<...etc>" take run the
+"<name>:<data1>,<data2>,<...etc>" take run the
 command with the data after the colon. Excess
-whitespace around ':' and '/' is ignored.
+whitespace around ':' and ',' is ignored.
 
 Example basic command:
     - "view"
@@ -15,7 +15,7 @@ Example basic command:
 
 Example command with data in it:
     - "view:steve"
-    - "create:alice/bob/clair/dennis"
+    - "create:alice,bob,clair,dennis"
 
 
 ----- >>> ------- COMMAND LIST ------- <<< ------
@@ -23,7 +23,7 @@ Example command with data in it:
 "help" / "h" / "?"
     Show this help screen.
 
-"close" / "x"
+"close" / "x" (in `--open` only)
     Close this window and optionally the opened
     folder/groups as well.
 
@@ -34,21 +34,27 @@ Example command with data in it:
 "save" / "s" / "push"
     Save/push a folder/group into the database,
     coding its name in the process.
-    ex. "save", "save:alice/bob/claire/dennis"
+    ex. "save", "save:alice,bob,claire,dennis"
 
 "view" / "v" / "pull"
     View/pull a folder/group from the database,
     decoding its name in the process.
-    ex. "view", "view:alice/bob/claire/dennis"
+    ex. "view", "view:alice,bob"
 
 "create" / "c"
     Create a new folder/group to put files into.
-    ex. "create", "create:alice/bob/claire/dennis"
+    ex. "create", "create:alice,bob,claire,dennis,earl"
 
 "delete" / "del"
     Delete a folder/group.
-    ex. "delete", "delete:alice/bob/claire/dennis"
+    ex. "delete", "delete:alice,bob,claire"
 
 "delete database"
     Delete the entire database.
+
+"pause" / "..." (in `--run` only)
+    Pause the execution until enter is pressed.
+
+"print" / "!" (in `--run` only)
+    Print some text to the console.
 _________________________________________________

@@ -6,7 +6,7 @@ object ProgramArguments {
     var mode:ProgramMode? = null; private set
     var autoConfirmFlag = false; private set
 
-    var TEMP_rootFolder = ""; private set
+    var runMode_commands = ""; private set
 
     fun parse(args: Array<String>):Boolean {
         val error = run error@{
@@ -17,8 +17,13 @@ object ProgramArguments {
             argMatch.add("-y",1) {
                 autoConfirmFlag = true
             }
-            argMatch.add("-r=(.*)",1) {
-                TEMP_rootFolder = it.groups[1]?.value ?: throw Exception("<impossible> rootFolder match group 1 missing")
+            when (mode) {
+                ProgramMode.RUN_DB -> {
+                    argMatch.add("-(?:commands|C)=(.*)", 1) {
+                        runMode_commands = it.groupValues[1]
+                    }
+                }
+                else -> {}
             }
 
             for (arg in args.slice(1 until args.size)) {
