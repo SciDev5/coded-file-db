@@ -19,7 +19,7 @@ private class DBParseException(dbConfig: DBConfig,msg:String,key:String,expected
 
 
 class DBConfig {
-    val path = workingDir/"codedDbConfig.json"
+    val path = workingDir/".config.json"
 
     var remoteDir: Path = Paths.get(".")
     var localDir: Path = Paths.get(".")
