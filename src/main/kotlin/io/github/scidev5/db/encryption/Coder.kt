@@ -1,4 +1,4 @@
-package io.github.scidev5.db
+package io.github.scidev5.db.encryption
 
 import io.github.scidev5.util.Hex
 import java.security.MessageDigest

@@ -8,7 +8,12 @@ import kotlin.io.path.*
 
 object AllFolderContents
 
-class DBFolder(private val location: Path) {
+class DBFolder(
+    private val location: Path,
+    onCreate: ()->Unit,
+    private val onDelete: ()->Unit)
+{
+    constructor(location: Path) : this(location, {}, {})
     private val isInitialized:Boolean get() = location.isDirectory()
     private fun childFile(fileName: String) = location/fileName
 
@@ -16,12 +21,14 @@ class DBFolder(private val location: Path) {
         if (!isInitialized) { // don't re-initialize
             location.deleteIfExists()
             location.createDirectory()
+            onCreate()
         }
     }
 
     fun delete() {
         clear()
         location.deleteIfExists()
+        onDelete()
     }
 
     operator fun get(fileName:String):BufferedInputStream? {

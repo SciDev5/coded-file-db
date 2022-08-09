@@ -33,4 +33,10 @@ object AskForInput {
     fun double(message: String):Double? {
         return obj(message, "precise decimal") { it.toDoubleOrNull() }
     }
+
+    fun password(message: String):String {
+        print("> $message:")
+        return System.console()?.readPassword()?.concatToString()
+            ?: readln()
+    }
 }

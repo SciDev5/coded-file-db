@@ -8,7 +8,8 @@ additional data as needed, commands formatted
 "<name>:<data1>,<data2>,<...etc>" run the
 command with the data after the colon, separated
 by commas. Excess whitespace around ':' and ','
-is ignored.
+is ignored. In some commands, '*' can be used
+to mean "everything that can safely be put here".
 
 Example basic commands:
     - "view"
@@ -35,12 +36,14 @@ Example commands with data in it:
 "save" / "s" / "push"
     Save/push a folder/group into the database,
     coding its name in the process.
-    ex. "save", "save:alice,bob,claire,dennis"
+    ex. "save", "save:alice,bob,claire,dennis", "s:*"
+    '*' selects all unsaved groups
 
 "view" / "v" / "pull"
     View/pull a folder/group from the database,
     decoding its name in the process.
-    ex. "view", "view:alice,bob"
+    ex. "view", "view:alice,bob", "v:*"
+    '*' selects all not yet viewing groups
 
 "create" / "c"
     Create a new folder/group to put files into.
@@ -48,7 +51,8 @@ Example commands with data in it:
 
 "delete" / "del"
     Delete a folder/group.
-    ex. "delete", "delete:alice,bob,claire"
+    ex. "delete", "delete:alice,bob,claire", "del:*"
+    '*' selects all groups
 
 "delete database"
     Delete the entire database.

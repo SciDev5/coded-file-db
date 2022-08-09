@@ -2,14 +2,17 @@ package io.github.scidev5.db
 
 import io.github.scidev5.commandLine.*
 import io.github.scidev5.commandLine.DefaultConfirmation
+import io.github.scidev5.db.encryption.DBEncryption
+import io.github.scidev5.util.fillet
 import io.github.scidev5.workingDir
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
-import java.nio.file.attribute.PosixFilePermission
 import kotlin.io.path.*
 
+private val PARAM_DELIMITER = Regex.fromLiteral(",")
+private const val WILDCARD = "*"
 
-class CurrentDB {
+class CurrentDB(password:String=AskForInput.password("enter database password")) {
     private enum class DBCommand(val label:String) {
         HELP        ("help"),
         CLOSE       ("close"),
@@ -65,19 +68,28 @@ class CurrentDB {
 
             config.save()
 
-            val openShPath = workingDir / "open.sh"
-            openShPath.writeText(DBInitData.openSHContent)
-            try {
-                openShPath.setPosixFilePermissions(
-                    setOf(PosixFilePermission.OWNER_EXECUTE) + openShPath.getPosixFilePermissions()
-                )
-            } catch (_: UnsupportedOperationException) {}
+            while (true) {
+                val password = DBEncryption.enterNewPassword()
+                val passwordData = DBEncryption(password, config.remoteDir)
+                passwordData.initPassword()
+                break
+            }
+
+            DBInitData.writeAllDotfiles(workingDir)
 
             println("""
 initialized coded-file-db:
- [local ] ${workingDir.absolutePathString()}
- [remote] ${config.remoteDir.absolutePathString()}
+ [ local  ] ${workingDir.absolutePathString()}
+ [ remote ] ${config.remoteDir.absolutePathString()}
 """.trim())
+        }
+
+        fun resetPassword() {
+            val db = CurrentDB()
+            db.requireUsableOrElse() ?: return
+            db.remote.encryption.setPassword(DBEncryption.enterNewPassword())
+            db.close(allowAbort = false)
+            println("password successfully changed")
         }
 
         fun run(commandListString: String) {
@@ -88,7 +100,7 @@ initialized coded-file-db:
 
             run withDBOpen@{
                 val db = CurrentDB()
-                db.requireInitialized() ?: return@withDBOpen
+                db.requireUsableOrElse() ?: return@withDBOpen
                 for (lineIn in commands) {
                     val input = parseCommand(lineIn)
                     db.runCommand(input, DBCommandSource.CLI)
@@ -100,7 +112,7 @@ initialized coded-file-db:
 
         fun open() {
             val db = CurrentDB()
-            db.requireInitialized() ?: return
+            db.requireUsableOrElse() ?: return
 
             loopWithDBOpen@ while (true) {
                 val input = AskForInput.obj(
@@ -113,10 +125,10 @@ initialized coded-file-db:
         }
 
         private fun parseCommand(lineIn:String):DBCommandParamPair {
-            val (rawCommand, rawParam) = lineIn.split(Regex(":"), 2) + listOf("")
+            val (rawCommand, rawParam) = lineIn.split(Regex.fromLiteral(":"), 2) + listOf("")
             return DBCommandParamPair(
                 DBCommand.parse(rawCommand.trim()),
-                rawParam.split(Regex(",")).map { it.trim() }
+                rawParam.split(PARAM_DELIMITER).map { it.trim() }
             )
         }
     }
@@ -124,10 +136,10 @@ initialized coded-file-db:
         return when (input?.command) {
             DBCommand.HELP -> Help.printDBOpen()
 
-            DBCommand.CREATE -> execForeachParam(input.params, this::create)
-            DBCommand.DELETE -> execForeachParam(input.params, this::delete)
-            DBCommand.SAVE -> execForeachParam(input.params, this::push)
-            DBCommand.VIEW -> execForeachParam(input.params, this::pull)
+            DBCommand.CREATE -> create(input.params)
+            DBCommand.DELETE -> delete(input.params)
+            DBCommand.SAVE -> push(input.params)
+            DBCommand.VIEW -> pull(input.params)
 
             DBCommand.LIST_PULLED -> listOpened()
 
@@ -154,19 +166,24 @@ initialized coded-file-db:
     }
 
     private val config = DBConfig()
-    fun requireInitialized():Unit? {
+    fun requireUsableOrElse():Unit? {
         return if (!config.initialized) {
             println(">> no config present in working directory.\n>> please navigate to a directory linked to a database.")
+            null
+        } else if (!remote.encryption.checkPassword()) {
+            println(">> password for database was incorrect")
+            if (requestConfirmation("show incorrectly entered password?",DefaultConfirmation.NO))
+                remote.encryption.logIncorrectPassword()
             null
         } else Unit
     }
 
-    private val db: DBRemote = DBRemote(config.remoteDir)
+    private val remote: DBRemote = DBRemote(config.remoteDir,password)
     private val pulledFolders = HashMap<String, DBFolder>()
-    private fun askForFolderName() = AskForInput.lineOrNevermind(
+    private fun askForFolderNames() = AskForInput.lineOrNevermind(
         "file group name?",
         "group name"
-    ) { it.isNotBlank() }?.trim()
+    ) { it.isNotBlank() }?.trim()?.split(PARAM_DELIMITER)
     private fun folderPath(folderName: String) = config.localDir / folderName
     private fun detectPulledFolder(folderName: String):Boolean {
         if (folderName in pulledFolders.keys)
@@ -177,11 +194,30 @@ initialized coded-file-db:
             true
         } else false
     }
-    private fun execForeachParam(paramsIn: List<String>, handle: (String?)->Unit) {
-        val params = paramsIn.filter { it.isNotBlank() }
-        if (params.isEmpty())  handle(null)
-        else                   params.forEach(handle)
+    private fun parseFolderList(
+        paramsIn: List<String>,
+        allowWildcard:Boolean = true,
+        all:Set<String>? = null,
+        askIfNone:Boolean = false
+    ):Set<String>? {
+        val params =
+            (if (allowWildcard) paramsIn.filter { it != WILDCARD } else paramsIn)
+            .map { it.replace(Regex("[^a-zA-Z\\d-_.()\\[\\]~ ]"),"_").trim() }
+            .filter { it.isNotBlank() }
+        return if (paramsIn.contains(WILDCARD) && allowWildcard)
+            ((all ?: remote.allFolders()).filterNot { it.isBlank() } + params).toSet()
+        else if (params.isEmpty()) {
+            if (askIfNone)
+                askForFolderNames()?.let {
+                    parseFolderList(it,allowWildcard,all)
+                }
+            else null
+        } else
+            params.toSet()
     }
+
+    private fun foldersToString(arr:Collection<String>):String
+        = "[${arr.joinToString(", "){"'$it'"}}]"
 
 
     private fun close(allowAbort:Boolean = true):Unit? {
@@ -200,33 +236,52 @@ initialized coded-file-db:
         return null
     }
 
-    private fun create(name: String?) {
-        val folderName = name ?: askForFolderName() ?: return
-        if (db.hasFolder(folderName)) {
-            return if (requestConfirmation(
-                    "group '$folderName' already exists, view/pull instead?",
+    private fun create(names: List<String>) {
+        val folderNames = parseFolderList(
+            names,
+            allowWildcard = false,
+            askIfNone = true
+        ) ?: return
+        val (existingFolderNames, creatingFolderNames)
+            = fillet(folderNames) { remote.hasFolder(it) }
+
+        if (existingFolderNames.isNotEmpty()) {
+            if (requestConfirmation(
+                    "groups ${foldersToString(existingFolderNames)} already exist, view/pull instead?",
                     DefaultConfirmation.YES
                 )
             )
-                pull(folderName)
+                pull(existingFolderNames)
             else
                 println("nothing changed")
         }
-        confirm("create group '$folderName'?", DefaultConfirmation.YES) ?: return
+        if (creatingFolderNames.isNotEmpty()) {
+            confirm(
+                "create groups ${foldersToString(creatingFolderNames)}?",
+                DefaultConfirmation.YES
+            ) ?: return
 
-        pulledFolders[folderName] = DBFolder(folderPath(folderName))
+            for (folderName in creatingFolderNames)
+                pulledFolders[folderName] = DBFolder(folderPath(folderName))
+        }
     }
-    private fun delete(name: String?) {
-        val folderName = name ?: askForFolderName() ?: return
-        strongConfirm("PERMANENTLY DELETE group '$folderName'?") ?: return
+    private fun delete(names: List<String>) {
+        val folderNames = parseFolderList(
+            names,
+            askIfNone = true
+        ) ?: return
+        strongConfirm("PERMANENTLY DELETE groups ${foldersToString(folderNames)}?")
+            ?: return
 
-        pulledFolders[folderName]?.delete()
-        db[folderName].delete()
+        for (folderName in folderNames) {
+            pulledFolders[folderName]?.delete()
+            remote[folderName].delete()
+        }
     }
 
     private fun doPush(folderName: String, pulledFolder: DBFolder) {
         println("- push '$folderName'")
-        db[folderName][AllFolderContents] = pulledFolder[AllFolderContents]
+        remote[folderName][AllFolderContents] = pulledFolder[AllFolderContents]
         pulledFolder.delete()
     }
     private fun doPush(folderName: String) {
@@ -237,48 +292,69 @@ initialized coded-file-db:
         println("- pull '$folderName'")
         val pulledFolder = pulledFolders[folderName] ?: DBFolder(folderPath(folderName))
         pulledFolders[folderName] = pulledFolder
-        pulledFolder[AllFolderContents] = db[folderName][AllFolderContents]
+        pulledFolder[AllFolderContents] = remote[folderName][AllFolderContents]
     }
 
-    private fun push(name: String?) {
-        val folderName = name ?: askForFolderName() ?: return
-        if (!detectPulledFolder(folderName)) {
-            println("group '$folderName' is not being edited")
-            return
-        }
-        confirm("save/push group '$folderName'?", DefaultConfirmation.YES) ?: return
+    private fun push(names: List<String>) {
+        val folderNames = parseFolderList(
+            names,
+            all = pulledFolders.keys,
+            askIfNone = true
+        ) ?: return
+        val (pulledFolderNames,remoteFolderNames)
+            = fillet(folderNames,this::detectPulledFolder)
 
-        doPush(folderName)
+        if (remoteFolderNames.isNotEmpty()) {
+            println("groups ${foldersToString(remoteFolderNames)} are not being edited, skipping")
+        }
+        if (pulledFolderNames.isNotEmpty()) {
+            confirm("save/push groups ${foldersToString(pulledFolderNames)}?", DefaultConfirmation.YES) ?: return
+            pulledFolderNames.forEach(this::doPush)
+        }
     }
-    private fun pull(name: String?) {
-        val folderName = name ?: askForFolderName() ?: return
+    private fun pull(names: List<String>) {
+        var folderNames = parseFolderList(
+            names,
+            all = remote.allFolders() - pulledFolders.keys,
+            askIfNone = true
+        ) ?: return
 
-        if (!db.hasFolder(folderName))
-            confirm("no such group '$folderName' in database, create it?", DefaultConfirmation.NO)
-                ?: return println("nothing changed")
+        val (existingFolderNames, creatingFolderNames)
+                = fillet(folderNames) { remote.hasFolder(it) }
+        if (creatingFolderNames.isNotEmpty())
+            confirm(
+                "no such groups ${foldersToString(creatingFolderNames)} in database, create?",
+                DefaultConfirmation.NO
+            ) ?: run { // otherwise, only modify existing
+                folderNames = existingFolderNames.toSet()
+            }
 
-        if (detectPulledFolder(folderName)) {
-            confirm("revert group '$folderName' to last saved value?", DefaultConfirmation.NO)
-                ?: return println("nothing changed")
-        } else {
-            confirm("view/pull group '$folderName'?", DefaultConfirmation.YES) ?: return
-        }
+        val (pulledFolderNames, notPulledFolderNames)
+                = fillet(folderNames, this::detectPulledFolder)
+        if (pulledFolderNames.isNotEmpty())
+            confirm(
+                "revert groups ${foldersToString(pulledFolderNames)} to last saved value?",
+                DefaultConfirmation.NO
+            ) ?: run { // otherwise, only pull not already pulled
+                folderNames = notPulledFolderNames.toSet()
+            }
 
-        doPull(folderName)
+
+        confirm("view/pull groups ${foldersToString(folderNames)}?", DefaultConfirmation.YES) ?: return
+
+        folderNames.forEach(this::doPull)
     }
     private fun listOpened() {
         println("currently viewing:")
         if (pulledFolders.isEmpty())
             println("<none>")
         else
-            println(
-                pulledFolders.keys.joinToString(", ") { "'$it'" }
-            )
+            println(foldersToString(pulledFolders.keys))
     }
 
     private fun deleteDatabase():Unit? {
         return if (requestStrongConfirmation("delete the ENTIRE DATABASE?")) {
-            db.destroy()
+            remote.destroy()
             println("DELETED DATABASE")
             null // <- tell the loop to break by returning null
         } else

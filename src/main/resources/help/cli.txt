@@ -24,6 +24,10 @@ Commands:
     folder initialized by `--init`. Automatically
     closes when execution completes.
 
+--resetPassword / -p
+    Reset the password. The old password is
+    necessary to set the new one.
+
 --help / -h / ?
     Show this screen.
 
