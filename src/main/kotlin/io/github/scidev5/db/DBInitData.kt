@@ -36,9 +36,7 @@ object DBInitData {
             )
         } catch (_: UnsupportedOperationException) {}
         // windows support
-        openCmdPath.writeText("""
-            powershell "./\"$saveAsName.sh\""
-        """.trim())
+        openCmdPath.writeText(loadDotfile("${pathName.substringBeforeLast(".")}.bat"))
     }
     private fun writeInfoFile(
         pathName: String,
