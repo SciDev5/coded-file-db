@@ -14,7 +14,7 @@ private const val WILDCARD = "*"
 
 class CurrentDB(password:String=AskForInput.password("enter database password")) {
     private enum class DBCommand(val label:String) {
-        HELP        ("texts"),
+        TEXTS       ("help"),
         CLOSE       ("close"),
         LIST_PULLED ("list viewing"),
         SAVE        ("save"),
@@ -29,7 +29,7 @@ class CurrentDB(password:String=AskForInput.password("enter database password"))
             fun parse(string: String): DBCommand? {
                 return all.firstOrNull { it.label == string }
                     ?: when (string) {
-                        "h", "?"    -> HELP
+                        "h", "?"    -> TEXTS
                         "x"         -> CLOSE
                         "s", "push" -> SAVE
                         "v", "pull" -> VIEW
@@ -41,7 +41,9 @@ class CurrentDB(password:String=AskForInput.password("enter database password"))
                         else -> null
                     }
             }
-            val all = arrayOf(HELP,CLOSE,SAVE,VIEW,CREATE,DELETE,DELETE_DB,LIST_PULLED,PRINT,PAUSE)
+            val all = arrayOf(
+                TEXTS, CLOSE, LIST_PULLED, SAVE, VIEW, CREATE, DELETE, DELETE_DB, PAUSE, PRINT
+            )
         }
     }
     private class DBCommandParamPair(val command: DBCommand?, val params: List<String>)
@@ -55,7 +57,7 @@ class CurrentDB(password:String=AskForInput.password("enter database password"))
 
             val remoteDirIn = AskForInput.lineOrNevermind(
                 "enter the database storage folder path (right click to paste)\n",
-                "valid path, 'default'"
+                "valid path, 'default'/empty"
             ) {
                 try {
                     Paths.get(it); true
@@ -138,7 +140,7 @@ initialized coded-file-db:
     }
     private fun runCommand(input:DBCommandParamPair?, source: DBCommandSource):Unit? {
         return when (input?.command) {
-            DBCommand.HELP -> Help.printDBOpen()
+            DBCommand.TEXTS -> Help.printDBOpen()
 
             DBCommand.CREATE -> create(input.params)
             DBCommand.DELETE -> delete(input.params)

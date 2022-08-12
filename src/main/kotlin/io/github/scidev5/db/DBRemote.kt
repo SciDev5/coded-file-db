@@ -12,7 +12,7 @@ import kotlin.io.path.*
 
 
 class DBRemote(private val REMOTE_DIR: Path, password:String) {
-    private val coder = Coder(REMOTE_DIR.absolutePathString().toByteArray(Charsets.UTF_8))
+    private val coder = Coder(REMOTE_DIR.pathString.toByteArray(Charsets.UTF_8))
     val encryption = DBEncryption(password,REMOTE_DIR)
 
     private val folders:MutableSet<String>

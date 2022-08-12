@@ -6,7 +6,7 @@
 
     <artifactId>coded-file-db</artifactId>
     <groupId>io.github.scidev5</groupId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
 
     <name>coded-file-db</name>
