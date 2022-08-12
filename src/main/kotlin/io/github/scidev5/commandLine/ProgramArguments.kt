@@ -10,7 +10,11 @@ object ProgramArguments {
 
     fun parse(args: Array<String>):Boolean {
         val error = run error@{
-            if (args.isEmpty()) return@error "no arguments were passed"
+            if (args.isEmpty()) {
+                mode = ProgramMode.GET_RUN_TOOL
+                println("no parameters provided, outputting run tools and instructions.")
+                return true
+            }
             mode = ProgramMode.fromString(args[0]) ?: return@error "invalid mode [${args[0]}]"
 
             val argMatch = RegexMany()

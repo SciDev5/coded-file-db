@@ -21,7 +21,7 @@ private class DBParseException(dbConfig: DBConfig,msg:String,key:String,expected
 class DBConfig {
     val path = workingDir/".config.json"
 
-    var remoteDir: Path = Paths.get(".")
+    var remoteDir: Path = Paths.get(".")/".@storage"
     var localDir: Path = Paths.get(".")
     var initialized = path.exists(); private set
 
@@ -41,7 +41,7 @@ class DBConfig {
 
     fun save() {
         path.writeText(buildJsonObject {
-            this.put(KEY.remoteDir,remoteDir.absolutePathString())
+            this.put(KEY.remoteDir,remoteDir.pathString)
         }.toString())
         initialized = true
     }

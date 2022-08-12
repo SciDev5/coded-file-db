@@ -1,4 +1,4 @@
-echo " :: enter arguments [--open|--help|...]:"
+echo " :: enter arguments [ex. '--open', '--init', or '--help', etc...]:"
 read -r P
 echo " "
 # shellcheck disable=SC2086

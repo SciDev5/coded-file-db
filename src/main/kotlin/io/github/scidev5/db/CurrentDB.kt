@@ -14,7 +14,7 @@ private const val WILDCARD = "*"
 
 class CurrentDB(password:String=AskForInput.password("enter database password")) {
     private enum class DBCommand(val label:String) {
-        HELP        ("help"),
+        HELP        ("texts"),
         CLOSE       ("close"),
         LIST_PULLED ("list viewing"),
         SAVE        ("save"),
@@ -53,18 +53,22 @@ class CurrentDB(password:String=AskForInput.password("enter database password"))
         fun init() {
             val config = DBConfig()
 
-            config.remoteDir = Paths.get(AskForInput.lineOrNevermind(
+            val remoteDirIn = AskForInput.lineOrNevermind(
                 "enter the database storage folder path (right click to paste)\n",
-                "valid path"
+                "valid path, 'default'"
             ) {
                 try {
                     Paths.get(it); true
                 } catch (e: InvalidPathException) {
                     false
                 }
-            }
-                ?: return println("nothing changed")
-            )
+            } ?: return println("nothing changed")
+            if (remoteDirIn != "default" && remoteDirIn.isNotEmpty())
+                config.remoteDir = Paths.get(remoteDirIn
+
+                )
+            if (!config.remoteDir.isDirectory())
+                config.remoteDir.createDirectories()
 
             config.save()
 

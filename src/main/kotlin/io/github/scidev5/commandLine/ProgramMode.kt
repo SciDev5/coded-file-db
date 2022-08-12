@@ -1,6 +1,7 @@
 package io.github.scidev5.commandLine
 
 enum class ProgramMode {
+    GET_RUN_TOOL,
     OPEN_DB,
     RUN_DB,
     INIT_DB,

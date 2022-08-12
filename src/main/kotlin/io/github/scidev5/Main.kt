@@ -4,6 +4,7 @@ import io.github.scidev5.commandLine.Help
 import io.github.scidev5.commandLine.ProgramArguments
 import io.github.scidev5.commandLine.ProgramMode.*
 import io.github.scidev5.db.CurrentDB
+import io.github.scidev5.db.DBInitData
 import io.github.scidev5.util.SplashReader
 import io.github.scidev5.util.UnableToContinueException
 import java.nio.file.Path
@@ -17,6 +18,7 @@ fun main(args: Array<String>) {
 
     try {
         when (ProgramArguments.mode) {
+            GET_RUN_TOOL -> DBInitData.writeRunToolDotfile()
             HELP -> Help.print()
             OPEN_DB -> CurrentDB.open()
             RUN_DB -> CurrentDB.run(ProgramArguments.runMode_commands)
