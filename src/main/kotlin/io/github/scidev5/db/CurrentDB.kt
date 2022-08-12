@@ -229,7 +229,7 @@ initialized coded-file-db:
     private fun close(allowAbort:Boolean = true):Unit? {
         if (pulledFolders.isNotEmpty()) {
             if (allowAbort)
-                confirm("unsaved changes, continue? (optional save-all before exit)", DefaultConfirmation.NO)
+                confirm("unsaved changes, continue closing?    (optional save-all next)\n", DefaultConfirmation.NO)
                     ?: return Unit
             if (requestConfirmation("save/push all unsaved changes?", DefaultConfirmation.YES)) {
                 println("save/pushing on close...")
