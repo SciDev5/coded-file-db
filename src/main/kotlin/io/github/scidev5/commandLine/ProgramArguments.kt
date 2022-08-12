@@ -5,6 +5,7 @@ import io.github.scidev5.util.RegexMany
 object ProgramArguments {
     var mode:ProgramMode? = null; private set
     var autoConfirmFlag = false; private set
+    var holdOpenOnFinishFlag = false; private set
 
     var runMode_commands = ""; private set
 
@@ -20,6 +21,9 @@ object ProgramArguments {
             val argMatch = RegexMany()
             argMatch.add("-y",1) {
                 autoConfirmFlag = true
+            }
+            argMatch.add("-holdOpenOnFinish",1) {
+                holdOpenOnFinishFlag = true
             }
             when (mode) {
                 ProgramMode.RUN_DB -> {

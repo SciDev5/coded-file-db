@@ -4,7 +4,7 @@
   <groupId>io.github.scidev5</groupId>
   <artifactId>coded-file-db</artifactId>
   <name>coded-file-db</name>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
   <build>
     <sourceDirectory>src/main/kotlin</sourceDirectory>
     <testSourceDirectory>src/test/kotlin</testSourceDirectory>
@@ -27,7 +27,7 @@
       <plugin>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-maven-plugin</artifactId>
-        <version>1.7.0</version>
+        <version>1.7.10</version>
         <executions>
           <execution>
             <id>compile</id>
@@ -55,6 +55,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
         <configuration>
           <source>8</source>
           <target>8</target>
@@ -91,7 +92,7 @@
     <dependency>
       <groupId>org.jetbrains.kotlin</groupId>
       <artifactId>kotlin-test-junit5</artifactId>
-      <version>1.7.0</version>
+      <version>1.7.10</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -107,7 +108,7 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.8.2</version>
+      <version>5.9.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>

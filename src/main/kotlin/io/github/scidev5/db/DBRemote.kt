@@ -11,8 +11,8 @@ import java.nio.file.Path
 import kotlin.io.path.*
 
 
-class DBRemote(private val REMOTE_DIR: Path, password:String) {
-    private val coder = Coder(REMOTE_DIR.pathString.toByteArray(Charsets.UTF_8))
+class DBRemote(private val REMOTE_DIR: Path, config:DBConfig, password:String) {
+    private val coder = Coder(config.groupNameSalt)
     val encryption = DBEncryption(password,REMOTE_DIR)
 
     private val folders:MutableSet<String>
@@ -45,8 +45,9 @@ class DBRemote(private val REMOTE_DIR: Path, password:String) {
             else
                 throw UnableToContinueException("did not create folder")
         }
-        if (!encryption.checkPassword())
-            throw UnableToContinueException("incorrect password")
+        if (config.initialized)
+            if (!encryption.checkPassword())
+                throw UnableToContinueException("incorrect password")
         folderListFile = encryption.encryptedFiles
             .open(REMOTE_DIR / "folderList") { "".toByteArray(Charsets.UTF_8) }
         folderListFileData = folderListFile.getWriterReader(

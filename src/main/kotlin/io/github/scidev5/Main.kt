@@ -30,6 +30,13 @@ fun main(args: Array<String>) {
         }
     } catch (e: UnableToContinueException) {
         println("!!!! unable to continue: ${e.reason} !!!!\n\n:: Aborting ::")
+    } catch (e: Exception) {
+        e.printStackTrace()
+    } finally {
+        if (ProgramArguments.holdOpenOnFinishFlag) {
+            println("\n\n :: finished program, press enter to close the window ::")
+            readln()
+        }
     }
 
 }

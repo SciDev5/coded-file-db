@@ -1,6 +1,7 @@
 package io.github.scidev5.db
 
 import io.github.scidev5.workingDir
+import org.apache.commons.lang3.SystemUtils
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
@@ -27,16 +28,23 @@ object DBInitData {
         dir:Path,
         saveAsName:String = pathName.substringAfterLast("/").substringBeforeLast(".")
     ) {
-        val openShPath = dir / ("$saveAsName.sh")
-        val openCmdPath = dir / ("$saveAsName[windows].cmd")
-        openShPath.writeText(loadDotfile(pathName))
-        try { // *nix support
-            openShPath.setPosixFilePermissions(
-                setOf(PosixFilePermission.OWNER_EXECUTE) + openShPath.getPosixFilePermissions()
-            )
-        } catch (_: UnsupportedOperationException) {}
-        // windows support
-        openCmdPath.writeText(loadDotfile("${pathName.substringBeforeLast(".")}.bat"))
+        if (SystemUtils.IS_OS_UNIX) {
+            // unix support
+            val openShPath = dir / ("$saveAsName.sh")
+            openShPath.writeText(loadDotfile(pathName))
+            try {
+                openShPath.setPosixFilePermissions(
+                    setOf(PosixFilePermission.OWNER_EXECUTE) + openShPath.getPosixFilePermissions()
+                )
+            } catch (_: UnsupportedOperationException) {
+            }
+        } else if (SystemUtils.IS_OS_WINDOWS) {
+            // windows support
+            val openCmdPath = dir / ("$saveAsName.cmd")
+            openCmdPath.writeText(loadDotfile("${pathName.substringBeforeLast(".")}.bat"))
+        } else {
+            throw Exception("unrecognized os, can't provide fitting helper files")
+        }
     }
     private fun writeInfoFile(
         pathName: String,
@@ -55,14 +63,18 @@ object DBInitData {
     }
     fun writeRunToolDotfile() {
         writeDotfile(
-            "/scripts/other command.sh",
+            "/scripts/init.sh",
             workingDir,
-            "run-CodedFileDB"
+            "init database here"
+        )
+        writeDotfile(
+            "/scripts/other command.sh",
+            workingDir
         )
         writeInfoFile(
-            "/binary-texts/usage-instructions.pdf",
+            "/binary-texts/manual.pdf",
             workingDir,
-            "usage-instructions.pdf",
+            "manual.pdf",
         )
     }
 }

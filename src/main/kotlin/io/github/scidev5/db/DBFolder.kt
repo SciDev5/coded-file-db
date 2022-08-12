@@ -26,8 +26,12 @@ class DBFolder(
     }
 
     fun delete() {
-        clear()
-        location.deleteIfExists()
+        clear { it.isFile }
+        if (location.toFile().listFiles()?.isEmpty() == true) {
+            location.deleteIfExists()
+        } else {
+            println("!! WARNING !!\n  Folders were left behind while deleting this group.\n  Don't use folders inside groups, they aren't saved!")
+        }
         onDelete()
     }
 
@@ -78,7 +82,6 @@ class DBFolder(
 
     private fun listFiles() = listFiles(null)
     private fun listFiles(filter: FileFilter?) = location.toFile().listFiles(filter)
-    private fun clear() = clear(null)
     private fun clear(filter: FileFilter?) {
         for (file in listFiles(filter) ?: emptyArray())
             file.delete()

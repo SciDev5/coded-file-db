@@ -56,8 +56,8 @@ class CurrentDB(password:String=AskForInput.password("enter database password"))
             val config = DBConfig()
 
             val remoteDirIn = AskForInput.lineOrNevermind(
-                "enter the database storage folder path (right click to paste)\n",
-                "valid path, 'default'/empty"
+                "enter storage folder path (right click to paste)\n  ",
+                "valid path (relative or absolute), type \"default\","
             ) {
                 try {
                     Paths.get(it); true
@@ -184,7 +184,7 @@ initialized coded-file-db:
         } else Unit
     }
 
-    private val remote: DBRemote = DBRemote(config.remoteDir,password)
+    private val remote: DBRemote = DBRemote(config.remoteDir,config,password)
     private val pulledFolders = HashMap<String, DBFolder>()
     private fun askForFolderNames() = AskForInput.lineOrNevermind(
         "file group name?",
